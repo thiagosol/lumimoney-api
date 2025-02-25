@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  lumimoney-api:
+    image: lumimoney-api
+    pull_policy: never
+    restart: always
+    container_name: lumimoney-api
+    environment:
+      DATABASE_HOST: ${POSTGRES_HOST}
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lumimoney-api.entrypoints=http"
+      - "traefik.http.routers.lumimoney-api.rule=Host(`api.lumimoney.thiagosol.com`)"
+      - "traefik.http.routers.lumimoney-api-secure.entrypoints=https"
+      - "traefik.http.routers.lumimoney-api-secure.rule=Host(`api.lumimoney.thiagosol.com`)"
+      - "traefik.http.routers.lumimoney-api-secure.tls=true"
+      - "traefik.http.routers.lumimoney-api-secure.service=lumimoney-api-secure"
+      - "traefik.http.services.lumimoney-api-secure.loadbalancer.server.port=8080"
+      - "traefik.docker.network=external-sol-apis"
+    networks:
+      - external-sol-apis
+      - logging-network
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "service=lumimoney-api,type=service"
+        loki-retries: "5"
+        loki-batch-size: "400"
+        mode: "non-blocking"
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+
+networks:
+  logging-network:
+    external: true
+  external-sol-apis:
+    external: true

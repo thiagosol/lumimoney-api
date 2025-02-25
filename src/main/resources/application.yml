@@ -1,0 +1,26 @@
+mp:
+  jwt:
+    verify:
+      publickey:
+        location: ${PUBLIC_KEY_LOCATION:public.pem}
+
+smallrye:
+  jwt:
+    sign:
+      key:
+        location: ${PRIVATE_KEY_LOCATION:private.pem}
+
+admin:
+  email: ${ADMIN_EMAIL:admin@thiagosol.com}
+  password: ${ADMIN_PASSWORD:12345}
+
+quarkus:
+  datasource:
+    db-kind: postgresql
+    jdbc:
+      url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:lumimoney-api}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+  hibernate-orm:
+    database:
+      generation: ${DATABASE_GENERATION:update}
