@@ -1,5 +1,6 @@
 package com.thiagosol.lumimoney.exception;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -14,6 +15,7 @@ public class BusinessExceptionMapper implements ExceptionMapper<BusinessExceptio
                 .build();
     }
 
+    @RegisterForReflection
     public static class ErrorResponse {
         public String message;
 
