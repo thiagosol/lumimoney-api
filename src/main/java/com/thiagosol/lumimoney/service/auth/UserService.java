@@ -2,6 +2,8 @@ package com.thiagosol.lumimoney.service.auth;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.thiagosol.lumimoney.entity.UserEntity;
+import com.thiagosol.lumimoney.exception.EmailAlreadyRegisteredException;
+import com.thiagosol.lumimoney.exception.InvalidCredentialsException;
 import io.smallrye.jwt.auth.principal.JWTParser;
 import io.smallrye.jwt.auth.principal.ParseException;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +24,7 @@ public class UserService {
     @Transactional
     public UserEntity registerUser(String email, String password) {
         if (UserEntity.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Email já registrado");
+            throw new EmailAlreadyRegisteredException();
         }
 
         UserEntity user = new UserEntity(email, password);
@@ -34,13 +36,13 @@ public class UserService {
     public String authenticateUser(String email, String password) {
         Optional<UserEntity> userOpt = UserEntity.findByEmail(email);
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("Usuário inválido");
+            throw new InvalidCredentialsException();
         }
 
         UserEntity user = userOpt.get();
         BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), user.passwordHash);
         if (!result.verified) {
-            throw new RuntimeException("Usuário inválido");
+            throw new InvalidCredentialsException();
         }
 
         return jwtService.generateToken(user.email, user.role);
@@ -49,9 +51,9 @@ public class UserService {
     public UserEntity getUserFromToken(String token) {
         try {
             String email = jwtParser.parse(token.replace("Bearer ", "")).getClaim("sub");
-            return UserEntity.findByEmail(email).orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            return UserEntity.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new InvalidCredentialsException();
         }
     }
 }

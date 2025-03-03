@@ -13,7 +13,7 @@ public class JwtService {
         return Jwt.issuer("lumimoney.thiagosol.com")
                 .subject(email)
                 .groups(Set.of(role.name()))
-                .expiresAt(System.currentTimeMillis() / 1000 + 3600) // Expira em 1h
+                .expiresAt(System.currentTimeMillis() / 1000 + 3600) // 1h
                 .sign();
     }
 }

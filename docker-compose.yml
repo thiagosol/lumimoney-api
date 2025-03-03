@@ -10,6 +10,10 @@ services:
       DATABASE_HOST: ${POSTGRES_HOST}
       DATABASE_USER: ${POSTGRES_USER}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      PUBLIC_KEY_LOCATION: /app/key/public.pem
+      PRIVATE_KEY_LOCATION: /app/key/private.pem
+    volumes:
+      - /opt/auto-deploy/certs/keys:/app/keys
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.lumimoney-api.entrypoints=http"
