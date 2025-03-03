@@ -15,7 +15,7 @@ import jakarta.ws.rs.core.MediaType;
 @ApplicationScoped
 public class GoogleAuthService {
 
-    private static final String GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo?id_token=";
+    private static final String GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo";
 
     @Inject
     JwtService jwtService;
@@ -39,7 +39,7 @@ public class GoogleAuthService {
 
             return jwtService.generateToken(user.email, user.role);
         } catch (Exception e) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException(e);
         }
     }
 }

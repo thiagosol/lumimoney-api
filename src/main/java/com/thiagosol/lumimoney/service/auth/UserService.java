@@ -53,7 +53,7 @@ public class UserService {
             String email = jwtParser.parse(token.replace("Bearer ", "")).getClaim("sub");
             return UserEntity.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
         } catch (ParseException e) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException(e);
         }
     }
 }
