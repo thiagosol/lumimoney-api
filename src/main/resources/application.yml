@@ -15,6 +15,9 @@ admin:
   password: ${ADMIN_PASSWORD:12345}
 
 quarkus:
+  native:
+    additional-build-args:
+      - "--initialize-at-run-time=com.github.f4b6a3.uuid.util.internal.RandomUtil$SecureRandomPool"
   datasource:
     db-kind: postgresql
     jdbc:
