@@ -17,6 +17,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import java.util.List;
 
@@ -33,29 +34,29 @@ public class PaymentMethodController {
 
     @POST
     @RolesAllowed({"USER", "MASTER"})
-    public Response createPaymentMethod(NewPaymentMethodDTO dto, @HeaderParam("Authorization") String token) {
+    public RestResponse<Void> createPaymentMethod(NewPaymentMethodDTO dto, @HeaderParam("Authorization") String token) {
         UserEntity user = userService.getUserFromToken(token);
         paymentMethodService.createPaymentMethod(dto, user);
-        return Response.status(Response.Status.CREATED).build();
+        return RestResponse.status(Response.Status.CREATED);
     }
 
     @GET
     @RolesAllowed({"USER", "MASTER"})
-    public List<GetPaymentMethodDTO> getUserPaymentMethods(@HeaderParam("Authorization") String token) {
+    public RestResponse<List<GetPaymentMethodDTO>> getUserPaymentMethods(@HeaderParam("Authorization") String token) {
         UserEntity user = userService.getUserFromToken(token);
-        return paymentMethodService.getPaymentMethodsByUser(user);
+        return RestResponse.ok(paymentMethodService.getPaymentMethodsByUser(user));
     }
 
     @DELETE
     @Path("/{id}")
     @RolesAllowed({"USER", "MASTER"})
-    public Response deletePaymentMethod(@PathParam("id") Long id, @HeaderParam("Authorization") String token) {
+    public RestResponse<Void> deletePaymentMethod(@PathParam("id") Long id, @HeaderParam("Authorization") String token) {
         UserEntity user = userService.getUserFromToken(token);
         boolean deleted = paymentMethodService.deletePaymentMethod(id, user);
         if (deleted) {
-            return Response.noContent().build();
+            return RestResponse.noContent();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return RestResponse.status(Response.Status.NOT_FOUND);
         }
     }
 }

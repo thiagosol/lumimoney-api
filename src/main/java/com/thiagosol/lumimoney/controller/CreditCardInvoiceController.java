@@ -13,6 +13,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,11 +32,11 @@ public class CreditCardInvoiceController {
     @GET
     @Path("/{creditCardId}")
     @RolesAllowed({"USER", "MASTER"})
-    public List<GetCreditCardInvoiceDTO> getUserCreditCardInvoicesByCreditCard(
+    public RestResponse<List<GetCreditCardInvoiceDTO>> getUserCreditCardInvoicesByCreditCard(
             @HeaderParam("Authorization") String token,
             @PathParam("creditCardId") UUID creditCardId) {
         UserEntity user = userService.getUserFromToken(token);
-        return creditCardInvoiceService.getPaymentMethodsByUserAndCreditCard(user, creditCardId);
+        return RestResponse.ok(creditCardInvoiceService.getPaymentMethodsByUserAndCreditCard(user, creditCardId));
     }
 }
 

@@ -12,6 +12,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @Path("/auth")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -24,15 +25,15 @@ public class UserController {
     @POST
     @Path("/register")
     @Transactional
-    public Response register(RegisterDTO dto) {
+    public RestResponse<Void> register(RegisterDTO dto) {
         userService.registerUser(dto.email(), dto.password());
-        return Response.status(Response.Status.CREATED).build();
+        return RestResponse.status(Response.Status.CREATED);
     }
 
     @POST
     @Path("/login")
-    public Response login(LoginDTO dto) {
+    public RestResponse<TokenDTO> login(LoginDTO dto) {
         String token = userService.authenticateUser(dto.email(), dto.password());
-        return Response.ok(new TokenDTO(token)).build();
+        return RestResponse.ok(new TokenDTO(token));
     }
 }

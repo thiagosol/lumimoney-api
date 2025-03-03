@@ -17,6 +17,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import java.util.List;
 
@@ -33,29 +34,29 @@ public class TransactionController {
 
     @POST
     @RolesAllowed({"USER", "MASTER"})
-    public Response createTransaction(NewTransactionDTO dto, @HeaderParam("Authorization") String token) {
+    public RestResponse<Void> createTransaction(NewTransactionDTO dto, @HeaderParam("Authorization") String token) {
         UserEntity user = userService.getUserFromToken(token);
         transactionService.createTransaction(dto, user);
-        return Response.status(Response.Status.CREATED).build();
+        return RestResponse.status(Response.Status.CREATED);
     }
 
     @GET
     @RolesAllowed({"USER", "MASTER"})
-    public List<GetTransactionDTO> getUserTransactions(@HeaderParam("Authorization") String token) {
+    public RestResponse<List<GetTransactionDTO>> getUserTransactions(@HeaderParam("Authorization") String token) {
         UserEntity user = userService.getUserFromToken(token);
-        return transactionService.getTransactionsByUser(user);
+        return RestResponse.ok(transactionService.getTransactionsByUser(user));
     }
 
     @DELETE
     @Path("/{id}")
     @RolesAllowed({"USER", "MASTER"})
-    public Response deleteTransaction(@PathParam("id") Long id, @HeaderParam("Authorization") String token) {
+    public RestResponse<Void> deleteTransaction(@PathParam("id") Long id, @HeaderParam("Authorization") String token) {
         UserEntity user = userService.getUserFromToken(token);
         boolean deleted = transactionService.deleteTransaction(id, user);
         if (deleted) {
-            return Response.noContent().build();
+            return RestResponse.noContent();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return RestResponse.status(Response.Status.NOT_FOUND);
         }
     }
 }

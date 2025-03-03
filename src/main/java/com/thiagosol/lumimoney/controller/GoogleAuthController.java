@@ -12,6 +12,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @Path("/auth")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -27,8 +28,8 @@ public class GoogleAuthController {
     @POST
     @Path("/google")
     @Transactional
-    public Response login(GoogleLoginDTO login) {
+    public RestResponse<TokenDTO> login(GoogleLoginDTO login) {
         String token = googleAuthService.login(login);
-        return Response.ok(new TokenDTO(token)).build();
+        return RestResponse.ok(new TokenDTO(token));
     }
 }

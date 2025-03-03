@@ -12,8 +12,8 @@ services:
       DATABASE_HOST: ${POSTGRES_HOST}
       DATABASE_USER: ${POSTGRES_USER}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      PUBLIC_KEY_LOCATION: /app/key/public.pem
-      PRIVATE_KEY_LOCATION: /app/key/private.pem
+      PUBLIC_KEY_LOCATION: file:///app/keys/public.pem
+      PRIVATE_KEY_LOCATION: file:///app/keys/private.pem
     volumes:
       - /opt/auto-deploy/certs/keys:/app/keys
     labels:
