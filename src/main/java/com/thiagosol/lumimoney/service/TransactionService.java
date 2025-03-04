@@ -27,9 +27,9 @@ public class TransactionService {
                 .map(id -> CreditCardInvoiceEntity.<CreditCardInvoiceEntity>findById(id)).orElse(null);
 
         switch (dto.frequency()) {
-            case TransactionFrequency.UNITARY -> createSingleTransaction(dto, paymentMethod, creditCardInvoice, user);
-            case TransactionFrequency.INSTALLMENT -> createInstallments(dto, paymentMethod, creditCardInvoice, user);
-            case TransactionFrequency.FIXED -> createFixedTransaction(dto, paymentMethod, creditCardInvoice, user);
+            case UNITARY -> createSingleTransaction(dto, paymentMethod, creditCardInvoice, user);
+            case INSTALLMENT -> createInstallments(dto, paymentMethod, creditCardInvoice, user);
+            case FIXED -> createFixedTransaction(dto, paymentMethod, creditCardInvoice, user);
         }
     }
 
