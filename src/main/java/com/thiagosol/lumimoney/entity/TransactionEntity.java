@@ -145,4 +145,3 @@ public class TransactionEntity extends PanacheEntityBase {
         this.deleted = true;
     }
 }
-

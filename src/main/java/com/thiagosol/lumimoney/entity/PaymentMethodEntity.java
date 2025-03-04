@@ -58,8 +58,11 @@ public class PaymentMethodEntity extends PanacheEntityBase {
         return name;
     }
 
+    public UserEntity getUser() {
+        return user;
+    }
+
     public void delete() {
         this.deleted = true;
     }
 }
-
