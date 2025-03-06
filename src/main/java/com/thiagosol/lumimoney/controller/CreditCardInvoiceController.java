@@ -6,12 +6,7 @@ import com.thiagosol.lumimoney.service.CreditCardInvoiceService;
 import com.thiagosol.lumimoney.service.auth.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.reactive.RestResponse;
 
@@ -30,13 +25,13 @@ public class CreditCardInvoiceController {
     UserService userService;
 
     @GET
-    @Path("/{creditCardId}")
+    @Path("/payment-method/{paymentMethodId}")
     @RolesAllowed({"USER", "MASTER"})
-    public RestResponse<List<GetCreditCardInvoiceDTO>> getUserCreditCardInvoicesByCreditCard(
+    public RestResponse<List<GetCreditCardInvoiceDTO>> getInvoicesByPaymentMethod(
             @HeaderParam("Authorization") String token,
-            @PathParam("creditCardId") UUID creditCardId) {
-        UserEntity user = userService.getUserFromToken(token);
-        return RestResponse.ok(creditCardInvoiceService.getPaymentMethodsByUserAndCreditCard(user, creditCardId));
+            @PathParam("paymentMethodId") UUID paymentMethodId,
+            @QueryParam("isClosed") Boolean isClosed) {
+        return RestResponse.ok(creditCardInvoiceService.getInvoicesByPaymentMethod(paymentMethodId, isClosed));
     }
 }
 

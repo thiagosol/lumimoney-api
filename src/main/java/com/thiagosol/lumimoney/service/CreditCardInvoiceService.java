@@ -17,9 +17,16 @@ public class CreditCardInvoiceService {
     @Inject
     CreditCardInvoiceRepository creditCardInvoiceRepository;
 
-    public List<GetCreditCardInvoiceDTO> getPaymentMethodsByUserAndCreditCard(UserEntity user, UUID creditCardId) {
-        return CreditCardInvoiceEntity.<CreditCardInvoiceEntity>list("user = ?1 and creditCard.id = ?2 and deleted = false", user, creditCardId)
-                .stream().map(GetCreditCardInvoiceDTO::new)
+    public List<GetCreditCardInvoiceDTO> getInvoicesByPaymentMethod(UUID paymentMethodId, Boolean isClosed) {
+        String query = "creditCard.paymentMethod.id = ?1 and deleted = false";
+        if (isClosed != null) {
+            query += " and isClosed = ?2";
+        }
+        
+        return CreditCardInvoiceEntity.<CreditCardInvoiceEntity>list(query, 
+                isClosed != null ? new Object[]{paymentMethodId, isClosed} : new Object[]{paymentMethodId})
+                .stream()
+                .map(GetCreditCardInvoiceDTO::new)
                 .toList();
     }
 
