@@ -7,11 +7,11 @@ services:
     restart: always
     container_name: lumimoney-api
     environment:
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      DATABASE_HOST: ${POSTGRES_HOST}
-      DATABASE_USER: ${POSTGRES_USER}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMIN_EMAIL: ${LUMIMONEY_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${LUMIMONEY_ADMIN_PASS}
+      DATABASE_HOST: thiagosol.com
+      DATABASE_USER: ${DB_POSTGRES_USER}
+      DATABASE_PASSWORD: ${DB_POSTGRES_PASS}
       PUBLIC_KEY_LOCATION: file:///app/keys/public.pem
       PRIVATE_KEY_LOCATION: file:///app/keys/private.pem
     volumes:

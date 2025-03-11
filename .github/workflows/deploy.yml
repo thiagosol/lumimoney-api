@@ -1,0 +1,79 @@
+name: Deploy Automático
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar o repositório do código-fonte
+        uses: actions/checkout@v4
+
+      - name: Clonar os secrets do repositório privado
+        run: |
+          git clone https://oauth2:${{ secrets.GH_TOKEN }}@github.com/thiagosol/secrets.git
+          mv secrets/secrets.json secrets.json
+
+      - name: Ler secrets do arquivo JSON
+        id: secrets
+        run: |
+          echo "::set-output name=DEPLOY_USER::$(jq -r '.DEPLOY_USER' secrets.json)"
+          echo "::set-output name=DEPLOY_PASS::$(jq -r '.DEPLOY_PASS' secrets.json)"
+          echo "::set-output name=LUMIMONEY_ADMIN_EMAIL::$(jq -r '.LUMIMONEY_ADMIN_EMAIL' secrets.json)"
+          echo "::set-output name=LUMIMONEY_ADMIN_PASS::$(jq -r '.LUMIMONEY_ADMIN_PASS' secrets.json)"
+          echo "::set-output name=DB_POSTGRES_USER::$(jq -r '.DB_POSTGRES_USER' secrets.json)"
+          echo "::set-output name=DB_POSTGRES_PASS::$(jq -r '.DB_POSTGRES_PASS' secrets.json)"
+
+      - name: Chamar o endpoint de deploy
+        run: |
+          curl -X POST "http://deploy.thiagosol.com/deploy" \
+            -u ${{ steps.secrets.outputs.DEPLOY_USER }}:${{ steps.secrets.outputs.DEPLOY_PASS }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "service": "${{ github.event.repository.name }}",
+              "branch": "${{ github.ref_name }}",
+              "env_vars": [
+                "LUMIMONEY_ADMIN_EMAIL=${{ steps.secrets.outputs.LUMIMONEY_ADMIN_EMAIL }}",
+                "LUMIMONEY_ADMIN_PASS=${{ steps.secrets.outputs.LUMIMONEY_ADMIN_PASS }}",
+                "DB_POSTGRES_USER=${{ steps.secrets.outputs.DB_POSTGRES_USER }}",
+                "DB_POSTGRES_PASS=${{ steps.secrets.outputs.DB_POSTGRES_PASS }}"
+              ]
+            }'
+
+      - name: Aguardar Conclusão do Deploy (Máx. 30 Minutos)
+        run: |
+          LOG_URL="https://deploy.thiagosol.com/logs/${{ github.event.repository.name }}"
+          AUTH="${{ steps.secrets.outputs.DEPLOY_USER }}:${{ steps.secrets.outputs.DEPLOY_PASS }}"
+          
+          echo "🟡 Monitorando logs em: $LOG_URL"
+          echo "⏳ Aguardando até 30 minutos pelo deploy..."
+
+          START_TIME=$(date +%s)
+          TIMEOUT=$((30 * 60))  # 30 minutos em segundos
+
+          while true; do
+            CURRENT_TIME=$(date +%s)
+            ELAPSED=$((CURRENT_TIME - START_TIME))
+
+            if [ $ELAPSED -gt $TIMEOUT ]; then
+              echo "❌ Tempo limite de 30 minutos atingido. Cancelando deploy..."
+              exit 1
+            fi
+
+            LOGS=$(curl -u "$AUTH" -s "$LOG_URL")
+            echo "$LOGS"  # Exibe todas as linhas do log no GitHub Actions
+
+            if echo "$LOGS" | grep -q "Deploy finalizado!"; then
+              echo "✅ Deploy finalizado com sucesso!"
+              exit 0
+            fi
+            
+            sleep 10  # Aguarda 10 segundos antes da próxima checagem
+          done
