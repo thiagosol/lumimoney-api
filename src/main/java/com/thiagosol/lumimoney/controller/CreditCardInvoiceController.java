@@ -3,7 +3,8 @@ package com.thiagosol.lumimoney.controller;
 import com.thiagosol.lumimoney.dto.creditcard.GetCreditCardInvoiceDTO;
 import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.service.CreditCardInvoiceService;
-import com.thiagosol.lumimoney.service.auth.UserService;
+import com.thiagosol.lumimoney.service.auth.SecurityService;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -22,16 +23,33 @@ public class CreditCardInvoiceController {
     CreditCardInvoiceService creditCardInvoiceService;
 
     @Inject
-    UserService userService;
+    SecurityService securityService;
 
     @GET
     @Path("/payment-method/{paymentMethodId}")
     @RolesAllowed({"USER", "MASTER"})
     public RestResponse<List<GetCreditCardInvoiceDTO>> getInvoicesByPaymentMethod(
-            @HeaderParam("Authorization") String token,
             @PathParam("paymentMethodId") UUID paymentMethodId,
             @QueryParam("isClosed") Boolean isClosed) {
         return RestResponse.ok(creditCardInvoiceService.getInvoicesByPaymentMethod(paymentMethodId, isClosed));
+    }
+
+    @PUT
+    @Path("/{invoiceId}/pay")
+    @RolesAllowed({"USER", "MASTER"})
+    public RestResponse<Void> payInvoice(@PathParam("invoiceId") UUID invoiceId) {
+        UserEntity user = securityService.getAuthenticatedUser();
+        creditCardInvoiceService.payInvoice(invoiceId, user);
+        return RestResponse.ok();
+    }
+
+    @PUT
+    @Path("/{invoiceId}/unpay")
+    @RolesAllowed({"USER", "MASTER"})
+    public RestResponse<Void> unpayInvoice(@PathParam("invoiceId") UUID invoiceId) {
+        UserEntity user = securityService.getAuthenticatedUser();
+        creditCardInvoiceService.unpayInvoice(invoiceId, user);
+        return RestResponse.ok();
     }
 }
 

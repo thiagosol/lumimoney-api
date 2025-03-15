@@ -4,13 +4,13 @@ import com.thiagosol.lumimoney.dto.auth.LoginDTO;
 import com.thiagosol.lumimoney.dto.auth.RegisterDTO;
 import com.thiagosol.lumimoney.dto.auth.TokenDTO;
 import com.thiagosol.lumimoney.dto.user.GetUserDTO;
+import com.thiagosol.lumimoney.service.auth.SecurityService;
 import com.thiagosol.lumimoney.service.auth.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -24,6 +24,9 @@ public class UserController {
 
     @Inject
     UserService userService;
+
+    @Inject
+    SecurityService securityService;
 
     @POST
     @Path("/register")
@@ -44,8 +47,8 @@ public class UserController {
     @GET
     @Path("/me")
     @RolesAllowed({"USER", "MASTER"})
-    public RestResponse<GetUserDTO> getCurrentUser(@HeaderParam("Authorization") String token) {
-        var user = userService.getUserFromToken(token);
+    public RestResponse<GetUserDTO> getCurrentUser() {
+        var user = securityService.getAuthenticatedUser();
         return RestResponse.ok(new GetUserDTO(user));
     }
 }

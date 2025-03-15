@@ -47,6 +47,10 @@ public class AccountEntity extends PanacheEntityBase {
         return balance;
     }
 
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
     public PaymentMethodEntity getPaymentMethod() {
         return paymentMethod;
     }

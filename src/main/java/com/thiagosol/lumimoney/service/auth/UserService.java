@@ -5,7 +5,6 @@ import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.exception.EmailAlreadyRegisteredException;
 import com.thiagosol.lumimoney.exception.InvalidCredentialsException;
 import io.smallrye.jwt.auth.principal.JWTParser;
-import io.smallrye.jwt.auth.principal.ParseException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -46,14 +45,5 @@ public class UserService {
         }
 
         return jwtService.generateToken(user.email, user.role);
-    }
-
-    public UserEntity getUserFromToken(String token) {
-        try {
-            String email = jwtParser.parse(token.replace("Bearer ", "")).getClaim("sub");
-            return UserEntity.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
-        } catch (ParseException e) {
-            throw new InvalidCredentialsException(e);
-        }
     }
 }

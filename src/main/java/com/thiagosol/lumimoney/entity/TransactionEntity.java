@@ -129,6 +129,10 @@ public class TransactionEntity extends PanacheEntityBase {
         return status;
     }
 
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
+    }
+
     public UUID getRecurrenceId() {
         return recurrenceId;
     }
@@ -141,7 +145,15 @@ public class TransactionEntity extends PanacheEntityBase {
         return date;
     }
 
+    public UserEntity getUser() {
+        return user;
+    }
+
     public void delete() {
         this.deleted = true;
+    }
+
+    public Integer getCurrentInstallment() {
+        return installmentNumber;
     }
 }

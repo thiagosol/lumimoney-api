@@ -7,6 +7,9 @@ import com.thiagosol.lumimoney.entity.TransactionEntity;
 import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.entity.enums.TransactionFrequency;
 import com.thiagosol.lumimoney.entity.enums.TransactionStatus;
+import com.thiagosol.lumimoney.exception.InvoiceAlreadyPaidException;
+import com.thiagosol.lumimoney.exception.InvoiceNotFoundException;
+import com.thiagosol.lumimoney.exception.InvoiceNotPaidException;
 import com.thiagosol.lumimoney.repository.CreditCardInvoiceRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -19,13 +22,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.postgresql.core.TransactionState;
-
 @ApplicationScoped
 public class CreditCardInvoiceService {
 
     @Inject
     CreditCardInvoiceRepository creditCardInvoiceRepository;
+
+    @Inject
+    AccountTransactionService accountTransactionService;
 
     public List<GetCreditCardInvoiceDTO> getInvoicesByPaymentMethod(UUID paymentMethodId, Boolean isClosed) {
         String query = "creditCard.paymentMethod.id = ?1 and deleted = false";
@@ -49,15 +53,52 @@ public class CreditCardInvoiceService {
     }
 
     @Transactional
-    public void payInvoice(UUID invoiceId, UUID creditCardId, UserEntity user) {
+    public void payInvoice(UUID invoiceId, UserEntity user) {
         CreditCardInvoiceEntity invoice = CreditCardInvoiceEntity.find(
-                "id = ?1 and creditCard.id = ?2 and user = ?3 and deleted = false",
-                invoiceId, creditCardId, user).firstResult();
+                "id = ?1 and user = ?2 and deleted = false",
+                invoiceId, user).firstResult();
         
-        if (invoice != null) {
-            invoice.pay();
-            invoice.persist();
+        if (invoice == null) {
+            throw new InvoiceNotFoundException();
         }
+
+        if (invoice.isPaid()) {
+            throw new InvoiceAlreadyPaidException();
+        }
+
+        invoice.pay();
+        invoice.persist();
+
+        accountTransactionService.processInvoicePayment(invoice, user);
+
+        List<CreditCardInvoiceEntity> futureInvoices = CreditCardInvoiceEntity
+            .<CreditCardInvoiceEntity>list(
+                "creditCard = ?1 and dueDate > ?2 and deleted = false order by dueDate asc",
+                invoice.getCreditCard(), invoice.getDueDate());
+
+        if (futureInvoices.size() <= 1 && !futureInvoices.isEmpty()) {
+            createNextInvoice(invoice.getCreditCard(), user, futureInvoices.get(0).getDueDate());
+        }
+    }
+
+    @Transactional
+    public void unpayInvoice(UUID invoiceId, UserEntity user) {
+        CreditCardInvoiceEntity invoice = CreditCardInvoiceEntity.find(
+                "id = ?1 and user = ?2 and deleted = false",
+                invoiceId, user).firstResult();
+        
+        if (invoice == null) {
+            throw new InvoiceNotFoundException();
+        }
+
+        if (!invoice.isPaid()) {
+            throw new InvoiceNotPaidException();
+        }
+
+        invoice.unpay();
+        invoice.persist();
+
+        accountTransactionService.processInvoiceUnpayment(invoice, user);
     }
 
     @Transactional

@@ -4,13 +4,13 @@ import com.thiagosol.lumimoney.dto.paymentmethod.GetPaymentMethodDTO;
 import com.thiagosol.lumimoney.dto.paymentmethod.NewPaymentMethodDTO;
 import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.service.PaymentMethodService;
-import com.thiagosol.lumimoney.service.auth.UserService;
+import com.thiagosol.lumimoney.service.auth.SecurityService;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -30,28 +30,28 @@ public class PaymentMethodController {
     PaymentMethodService paymentMethodService;
 
     @Inject
-    UserService userService;
+    SecurityService securityService;
 
     @POST
     @RolesAllowed({"USER", "MASTER"})
-    public RestResponse<Void> createPaymentMethod(NewPaymentMethodDTO dto, @HeaderParam("Authorization") String token) {
-        UserEntity user = userService.getUserFromToken(token);
+    public RestResponse<Void> createPaymentMethod(NewPaymentMethodDTO dto) {
+        UserEntity user = securityService.getAuthenticatedUser();
         paymentMethodService.createPaymentMethod(dto, user);
         return RestResponse.status(Response.Status.CREATED);
     }
 
     @GET
     @RolesAllowed({"USER", "MASTER"})
-    public RestResponse<List<GetPaymentMethodDTO>> getUserPaymentMethods(@HeaderParam("Authorization") String token) {
-        UserEntity user = userService.getUserFromToken(token);
+    public RestResponse<List<GetPaymentMethodDTO>> getUserPaymentMethods() {
+        UserEntity user = securityService.getAuthenticatedUser();
         return RestResponse.ok(paymentMethodService.getPaymentMethodsByUser(user));
     }
 
     @DELETE
     @Path("/{id}")
     @RolesAllowed({"USER", "MASTER"})
-    public RestResponse<Void> deletePaymentMethod(@PathParam("id") Long id, @HeaderParam("Authorization") String token) {
-        UserEntity user = userService.getUserFromToken(token);
+    public RestResponse<Void> deletePaymentMethod(@PathParam("id") Long id) {
+        UserEntity user = securityService.getAuthenticatedUser();
         boolean deleted = paymentMethodService.deletePaymentMethod(id, user);
         if (deleted) {
             return RestResponse.noContent();
