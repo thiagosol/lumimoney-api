@@ -73,10 +73,10 @@ public class AccountTransactionEntity extends PanacheEntityBase {
         this.creditCardInvoice = creditCardInvoice;
         this.amount = amount;
         this.previousBalance = account.getBalance();
-        this.currentBalance = calculateNewBalance();
         this.operationType = operationType;
         this.date = LocalDateTime.now();
         this.user = user;
+        this.currentBalance = calculateNewBalance();
     }
 
     private BigDecimal calculateNewBalance() {
