@@ -1,11 +1,6 @@
 package com.thiagosol.lumimoney.controller;
 
-import com.thiagosol.lumimoney.dto.auth.LoginDTO;
-import com.thiagosol.lumimoney.dto.auth.RegisterDTO;
-import com.thiagosol.lumimoney.dto.auth.TokenDTO;
-import com.thiagosol.lumimoney.dto.user.GetUserDTO;
 import com.thiagosol.lumimoney.service.auth.SecurityService;
-import com.thiagosol.lumimoney.service.auth.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -23,32 +18,13 @@ import org.jboss.resteasy.reactive.RestResponse;
 public class UserController {
 
     @Inject
-    UserService userService;
-
-    @Inject
     SecurityService securityService;
 
-    @POST
-    @Path("/register")
-    @Transactional
-    public RestResponse<TokenDTO> register(RegisterDTO dto) {
-        userService.registerUser(dto.email(), dto.password());
-        String token = userService.authenticateUser(dto.email(), dto.password());
-        return RestResponse.ok(new TokenDTO(token));
-    }
-
-    @POST
-    @Path("/login")
-    public RestResponse<TokenDTO> login(LoginDTO dto) {
-        String token = userService.authenticateUser(dto.email(), dto.password());
-        return RestResponse.ok(new TokenDTO(token));
-    }
-
-    @GET
+    /*@GET
     @Path("/me")
-    @RolesAllowed({"USER", "MASTER"})
+    @RolesAllowed(SecurityService.ROLE_USER)
     public RestResponse<GetUserDTO> getCurrentUser() {
         var user = securityService.getAuthenticatedUser();
         return RestResponse.ok(new GetUserDTO(user));
-    }
+    }*/
 }

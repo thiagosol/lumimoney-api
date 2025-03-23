@@ -50,9 +50,8 @@ public class AccountTransactionEntity extends PanacheEntityBase {
     @Column(nullable = false)
     private LocalDateTime date;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @ManyToOne
     @JoinColumn(name = "previous_operation_id")
@@ -66,7 +65,7 @@ public class AccountTransactionEntity extends PanacheEntityBase {
 
     public AccountTransactionEntity(AccountEntity account, TransactionEntity transaction,
                                   CreditCardInvoiceEntity creditCardInvoice, BigDecimal amount,
-                                  AccountTransactionType operationType, UserEntity user) {
+                                  AccountTransactionType operationType, UUID userId) {
         this.id = UuidCreator.getTimeOrdered();
         this.account = account;
         this.transaction = transaction;
@@ -75,7 +74,7 @@ public class AccountTransactionEntity extends PanacheEntityBase {
         this.previousBalance = account.getBalance();
         this.operationType = operationType;
         this.date = LocalDateTime.now();
-        this.user = user;
+        this.userId = userId;
         this.currentBalance = calculateNewBalance();
     }
 
@@ -122,8 +121,8 @@ public class AccountTransactionEntity extends PanacheEntityBase {
         return date;
     }
 
-    public UserEntity getUser() {
-        return user;
+    public UUID getUserId() {
+        return userId;
     }
 
     public AccountTransactionEntity getPreviousOperation() {

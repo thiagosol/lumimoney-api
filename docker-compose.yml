@@ -14,6 +14,7 @@ services:
       DATABASE_PASSWORD: ${DB_POSTGRES_PASS}
       PUBLIC_KEY_LOCATION: file:///app/keys/public.pem
       PRIVATE_KEY_LOCATION: file:///app/keys/private.pem
+      AUTH_CLIENT_SECRET: ${LUMIMONEY_AUTH_CLIENT_SECRET}
     volumes:
       - /opt/auto-deploy/certs/keys:/app/keys
     labels:

@@ -28,9 +28,8 @@ public class PaymentMethodEntity extends PanacheEntityBase {
     @Column(nullable = false)
     private PaymentMethodType type;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Column(nullable = false)
     private boolean deleted;
@@ -38,11 +37,11 @@ public class PaymentMethodEntity extends PanacheEntityBase {
     protected PaymentMethodEntity() {
     }
 
-    public PaymentMethodEntity(String name, PaymentMethodType type, UserEntity user) {
+    public PaymentMethodEntity(String name, PaymentMethodType type, UUID userId) {
         this.id = UuidCreator.getTimeOrdered();
         this.name = name;
         this.type = type;
-        this.user = user;
+        this.userId = userId;
         this.deleted = false;
     }
 
@@ -58,8 +57,8 @@ public class PaymentMethodEntity extends PanacheEntityBase {
         return name;
     }
 
-    public UserEntity getUser() {
-        return user;
+    public UUID getUserId() {
+        return userId;
     }
 
     public void delete() {

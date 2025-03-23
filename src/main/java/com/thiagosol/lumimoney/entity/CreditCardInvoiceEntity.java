@@ -39,9 +39,8 @@ public class CreditCardInvoiceEntity extends PanacheEntityBase {
     @JoinColumn(name = "credit_card_id", nullable = false)
     private CreditCardEntity creditCard;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Column(nullable = false)
     private boolean deleted;
@@ -50,7 +49,7 @@ public class CreditCardInvoiceEntity extends PanacheEntityBase {
     }
 
     public CreditCardInvoiceEntity(LocalDate dueDate, LocalDate closingDate, boolean isClosed, BigDecimal totalAmount,
-                                 CreditCardEntity creditCard, UserEntity user) {
+                                 CreditCardEntity creditCard, UUID userId) {
         this.id = UuidCreator.getTimeOrdered();
         this.dueDate = dueDate;
         this.closingDate = closingDate;
@@ -58,7 +57,7 @@ public class CreditCardInvoiceEntity extends PanacheEntityBase {
         this.isPaid = false;
         this.totalAmount = totalAmount != null ? totalAmount : BigDecimal.ZERO;
         this.creditCard = creditCard;
-        this.user = user;
+        this.userId = userId;
         this.deleted = false;
     }
 

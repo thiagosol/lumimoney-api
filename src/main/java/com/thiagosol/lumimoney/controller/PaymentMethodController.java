@@ -2,7 +2,6 @@ package com.thiagosol.lumimoney.controller;
 
 import com.thiagosol.lumimoney.dto.paymentmethod.GetPaymentMethodDTO;
 import com.thiagosol.lumimoney.dto.paymentmethod.NewPaymentMethodDTO;
-import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.service.PaymentMethodService;
 import com.thiagosol.lumimoney.service.auth.SecurityService;
 
@@ -20,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 @Path("/payment-methods")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -33,26 +33,26 @@ public class PaymentMethodController {
     SecurityService securityService;
 
     @POST
-    @RolesAllowed({"USER", "MASTER"})
+    @RolesAllowed(SecurityService.ROLE_USER)
     public RestResponse<Void> createPaymentMethod(NewPaymentMethodDTO dto) {
-        UserEntity user = securityService.getAuthenticatedUser();
-        paymentMethodService.createPaymentMethod(dto, user);
+        UUID userId = securityService.getAuthenticatedUser();
+        paymentMethodService.createPaymentMethod(dto, userId);
         return RestResponse.status(Response.Status.CREATED);
     }
 
     @GET
-    @RolesAllowed({"USER", "MASTER"})
+    @RolesAllowed(SecurityService.ROLE_USER)
     public RestResponse<List<GetPaymentMethodDTO>> getUserPaymentMethods() {
-        UserEntity user = securityService.getAuthenticatedUser();
-        return RestResponse.ok(paymentMethodService.getPaymentMethodsByUser(user));
+        UUID userId = securityService.getAuthenticatedUser();
+        return RestResponse.ok(paymentMethodService.getPaymentMethodsByUser(userId));
     }
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({"USER", "MASTER"})
+    @RolesAllowed(SecurityService.ROLE_USER)
     public RestResponse<Void> deletePaymentMethod(@PathParam("id") Long id) {
-        UserEntity user = securityService.getAuthenticatedUser();
-        boolean deleted = paymentMethodService.deletePaymentMethod(id, user);
+        UUID userId = securityService.getAuthenticatedUser();
+        boolean deleted = paymentMethodService.deletePaymentMethod(id, userId);
         if (deleted) {
             return RestResponse.noContent();
         } else {

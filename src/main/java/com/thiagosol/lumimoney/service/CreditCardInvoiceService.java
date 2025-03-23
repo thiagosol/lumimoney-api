@@ -4,7 +4,6 @@ import com.thiagosol.lumimoney.dto.creditcard.GetCreditCardInvoiceDTO;
 import com.thiagosol.lumimoney.entity.CreditCardEntity;
 import com.thiagosol.lumimoney.entity.CreditCardInvoiceEntity;
 import com.thiagosol.lumimoney.entity.TransactionEntity;
-import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.entity.enums.TransactionFrequency;
 import com.thiagosol.lumimoney.entity.enums.TransactionStatus;
 import com.thiagosol.lumimoney.exception.InvoiceAlreadyPaidException;
@@ -44,19 +43,19 @@ public class CreditCardInvoiceService {
                 .toList();
     }
 
-    public Optional<GetCreditCardInvoiceDTO> getFirstUnpaidInvoice(UUID creditCardId, UserEntity user) {
+    public Optional<GetCreditCardInvoiceDTO> getFirstUnpaidInvoice(UUID creditCardId, UUID userId) {
         return CreditCardInvoiceEntity.<CreditCardInvoiceEntity>find(
-                "creditCard.id = ?1 and user = ?2 and isPaid = false and deleted = false order by dueDate asc",
-                creditCardId, user)
+                "creditCard.id = ?1 and userId = ?2 and isPaid = false and deleted = false order by dueDate asc",
+                creditCardId, userId)
                 .firstResultOptional()
                 .map(GetCreditCardInvoiceDTO::new);
     }
 
     @Transactional
-    public void payInvoice(UUID invoiceId, UserEntity user) {
+    public void payInvoice(UUID invoiceId, UUID userId) {
         CreditCardInvoiceEntity invoice = CreditCardInvoiceEntity.find(
-                "id = ?1 and user = ?2 and deleted = false",
-                invoiceId, user).firstResult();
+                "id = ?1 and userId = ?2 and deleted = false",
+                invoiceId, userId).firstResult();
         
         if (invoice == null) {
             throw new InvoiceNotFoundException();
@@ -69,7 +68,7 @@ public class CreditCardInvoiceService {
         invoice.pay();
         invoice.persist();
 
-        accountTransactionService.processInvoicePayment(invoice, user);
+        accountTransactionService.processInvoicePayment(invoice, userId);
 
         List<CreditCardInvoiceEntity> futureInvoices = CreditCardInvoiceEntity
             .<CreditCardInvoiceEntity>list(
@@ -77,15 +76,15 @@ public class CreditCardInvoiceService {
                 invoice.getCreditCard(), invoice.getDueDate());
 
         if (futureInvoices.size() <= 1 && !futureInvoices.isEmpty()) {
-            createNextInvoice(invoice.getCreditCard(), user, futureInvoices.get(0).getDueDate());
+            createNextInvoice(invoice.getCreditCard(), userId, futureInvoices.get(0).getDueDate());
         }
     }
 
     @Transactional
-    public void unpayInvoice(UUID invoiceId, UserEntity user) {
+    public void unpayInvoice(UUID invoiceId, UUID userId) {
         CreditCardInvoiceEntity invoice = CreditCardInvoiceEntity.find(
-                "id = ?1 and user = ?2 and deleted = false",
-                invoiceId, user).firstResult();
+                "id = ?1 and userId = ?2 and deleted = false",
+                invoiceId, userId).firstResult();
         
         if (invoice == null) {
             throw new InvoiceNotFoundException();
@@ -98,14 +97,15 @@ public class CreditCardInvoiceService {
         invoice.unpay();
         invoice.persist();
 
-        accountTransactionService.processInvoiceUnpayment(invoice, user);
+        accountTransactionService.processInvoiceUnpayment(invoice, userId);
     }
 
     @Transactional
-    public CreditCardInvoiceEntity createNextInvoice(CreditCardEntity creditCard, UserEntity user, LocalDate currentDueDate) {
+    public CreditCardInvoiceEntity createNextInvoice(CreditCardEntity creditCard, UUID userId, LocalDate currentDueDate) {
         YearMonth nextMonth = YearMonth.from(currentDueDate).plusMonths(1);
-        LocalDate nextDueDate = nextMonth.atDay(creditCard.getDueDayOfMonth());
-        
+        int safeDueDay = Math.min(creditCard.getDueDayOfMonth(), nextMonth.lengthOfMonth());
+        LocalDate nextDueDate = nextMonth.atDay(safeDueDay);
+
         Optional<CreditCardInvoiceEntity> nextInvoice = CreditCardInvoiceEntity
             .<CreditCardInvoiceEntity>find("creditCard = ?1 and dueDate = ?2 and deleted = false", 
                 creditCard, nextDueDate)
@@ -114,17 +114,19 @@ public class CreditCardInvoiceService {
         if (nextInvoice.isEmpty()) {
             LocalDate nextClosingDate;
             if (creditCard.getClosingDayOfMonth() < creditCard.getDueDayOfMonth()) {
-                nextClosingDate = nextMonth.atDay(creditCard.getClosingDayOfMonth());
+                int safeClosingDay = Math.min(creditCard.getClosingDayOfMonth(), nextMonth.lengthOfMonth());
+                nextClosingDate = nextMonth.atDay(safeClosingDay);
             } else {
                 YearMonth closingMonth = nextMonth.minusMonths(1);
-                nextClosingDate = closingMonth.atDay(creditCard.getClosingDayOfMonth());
+                int safeClosingDay = Math.min(creditCard.getClosingDayOfMonth(), closingMonth.lengthOfMonth());
+                nextClosingDate = closingMonth.atDay(safeClosingDay);
             }
 
             var newInvoice = new CreditCardInvoiceEntity(nextDueDate, nextClosingDate, false, BigDecimal.ZERO,
-                    creditCard, user);
+                    creditCard, userId);
             newInvoice.persist();
 
-            replicateFixedTransactions(currentDueDate, newInvoice, user);
+            replicateFixedTransactions(currentDueDate, newInvoice, userId);
 
             return newInvoice;
         }
@@ -132,7 +134,7 @@ public class CreditCardInvoiceService {
         return nextInvoice.get();
     }
 
-    private void replicateFixedTransactions(LocalDate fromDueDate, CreditCardInvoiceEntity toInvoice, UserEntity user) {
+    private void replicateFixedTransactions(LocalDate fromDueDate, CreditCardInvoiceEntity toInvoice, UUID userId) {
 
         List<TransactionEntity> fixedTransactions = TransactionEntity
             .<TransactionEntity>list(
@@ -152,7 +154,7 @@ public class CreditCardInvoiceService {
                 transaction.getPaymentMethod(),
                 toInvoice,
                 transaction.getDate(),
-                user
+                userId
             );
             newTransaction.persist();
         }

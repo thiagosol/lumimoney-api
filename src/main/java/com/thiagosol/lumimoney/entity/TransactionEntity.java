@@ -63,9 +63,8 @@ public class TransactionEntity extends PanacheEntityBase {
     @Column(nullable = false)
     private LocalDateTime date;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Column(nullable = false)
     private boolean deleted;
@@ -76,7 +75,7 @@ public class TransactionEntity extends PanacheEntityBase {
     public TransactionEntity(String description, BigDecimal amount, TransactionType type, TransactionFrequency frequency,
                              TransactionStatus status, Integer installmentNumber, Integer totalInstallments,
                              UUID recurrenceId, PaymentMethodEntity paymentMethod, CreditCardInvoiceEntity creditCardInvoice,
-                             LocalDateTime date, UserEntity user) {
+                             LocalDateTime date, UUID userId) {
         this.id = UuidCreator.getTimeOrdered();
         this.description = description;
         this.amount = amount;
@@ -89,7 +88,7 @@ public class TransactionEntity extends PanacheEntityBase {
         this.paymentMethod = paymentMethod;
         this.creditCardInvoice = creditCardInvoice;
         this.date = date;
-        this.user = user;
+        this.userId = userId;
         this.deleted = false;
     }
 
@@ -145,8 +144,8 @@ public class TransactionEntity extends PanacheEntityBase {
         return date;
     }
 
-    public UserEntity getUser() {
-        return user;
+    public UUID getUserId() {
+        return userId;
     }
 
     public void delete() {

@@ -5,7 +5,6 @@ import com.thiagosol.lumimoney.dto.creditcard.NewCreditCardDTO;
 import com.thiagosol.lumimoney.entity.CreditCardEntity;
 import com.thiagosol.lumimoney.entity.CreditCardInvoiceEntity;
 import com.thiagosol.lumimoney.entity.PaymentMethodEntity;
-import com.thiagosol.lumimoney.entity.UserEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
@@ -22,25 +21,25 @@ public class CreditCardService {
     public CreditCardEntity createCreditCard(PaymentMethodEntity paymentMethod, NewCreditCardDTO dto) {
         var creditCard = new CreditCardEntity(paymentMethod, dto.dueDayOfMonth(), dto.closingDayOfMonth(), dto.creditLimit());
         creditCard.persist();
-        createInitialInvoices(creditCard, paymentMethod.getUser());
+        createInitialInvoices(creditCard, paymentMethod.getUserId());
         return creditCard;
     }
 
-    private void createInitialInvoices(CreditCardEntity creditCard, UserEntity user) {
+    private void createInitialInvoices(CreditCardEntity creditCard, UUID userId) {
         LocalDate today = LocalDate.now();
         YearMonth currentMonth = YearMonth.from(today);
         
         // Se o dia de vencimento é depois do dia atual, cria fatura para o mês atual
         if (creditCard.getDueDayOfMonth() > today.getDayOfMonth()) {
-            createInvoiceForMonth(creditCard, user, currentMonth);
+            createInvoiceForMonth(creditCard, userId, currentMonth);
         }
 
         // Cria faturas para os próximos 2 meses
-        createInvoiceForMonth(creditCard, user, currentMonth.plusMonths(1));
-        createInvoiceForMonth(creditCard, user, currentMonth.plusMonths(2));
+        createInvoiceForMonth(creditCard, userId, currentMonth.plusMonths(1));
+        createInvoiceForMonth(creditCard, userId, currentMonth.plusMonths(2));
     }
 
-    private void createInvoiceForMonth(CreditCardEntity creditCard, UserEntity user, YearMonth yearMonth) {
+    private void createInvoiceForMonth(CreditCardEntity creditCard, UUID userId, YearMonth yearMonth) {
         int dueDay = creditCard.getDueDayOfMonth();
         int closingDay = creditCard.getClosingDayOfMonth();
         
@@ -58,7 +57,7 @@ public class CreditCardService {
             closingDate = closingMonth.atDay(Math.min(closingDay, closingMonth.lengthOfMonth()));
         }
 
-        var invoice = new CreditCardInvoiceEntity(dueDate, closingDate, false, BigDecimal.ZERO, creditCard, user);
+        var invoice = new CreditCardInvoiceEntity(dueDate, closingDate, false, BigDecimal.ZERO, creditCard, userId);
         invoice.persist();
     }
 

@@ -10,8 +10,8 @@ import java.util.UUID;
 @ApplicationScoped
 public class CreditCardInvoiceRepository implements PanacheRepositoryBase<CreditCardInvoiceEntity, UUID> {
     
-    public Optional<CreditCardInvoiceEntity> findLastOpenInvoice(UUID creditCardId, Long userId) {
-        return find("creditCard.id = ?1 and user.id = ?2 and isClosed = false and deleted = false order by dueDate desc", 
+    public Optional<CreditCardInvoiceEntity> findLastOpenInvoice(UUID creditCardId, UUID userId) {
+        return find("creditCard.id = ?1 and userId = ?2 and isClosed = false and deleted = false order by dueDate desc", 
                 creditCardId, userId)
                 .firstResultOptional();
     }

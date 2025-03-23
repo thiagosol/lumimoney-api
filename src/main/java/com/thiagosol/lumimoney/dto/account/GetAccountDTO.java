@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record GetAccountDTO(UUID id,
-                          BigDecimal balance) {
+                            BigDecimal balance) {
 
     public GetAccountDTO(AccountEntity accountEntity) {
         this(accountEntity.getId(), accountEntity.getBalance());

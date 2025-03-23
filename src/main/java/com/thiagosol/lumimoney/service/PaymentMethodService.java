@@ -5,7 +5,6 @@ import com.thiagosol.lumimoney.dto.paymentmethod.NewPaymentMethodDTO;
 import com.thiagosol.lumimoney.entity.AccountEntity;
 import com.thiagosol.lumimoney.entity.CreditCardEntity;
 import com.thiagosol.lumimoney.entity.PaymentMethodEntity;
-import com.thiagosol.lumimoney.entity.UserEntity;
 import com.thiagosol.lumimoney.entity.enums.PaymentMethodType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,6 +12,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @ApplicationScoped
 public class PaymentMethodService {
@@ -27,8 +27,8 @@ public class PaymentMethodService {
     CreditCardService creditCardService;
 
     @Transactional
-    public void createPaymentMethod(NewPaymentMethodDTO dto, UserEntity user) {
-        var paymentMethodEntity = new PaymentMethodEntity(dto.name(), dto.type(), user);
+    public void createPaymentMethod(NewPaymentMethodDTO dto, UUID userId) {
+        var paymentMethodEntity = new PaymentMethodEntity(dto.name(), dto.type(), userId);
         paymentMethodEntity.persist();
 
         if (dto.type() == PaymentMethodType.ACCOUNT) {
@@ -38,15 +38,15 @@ public class PaymentMethodService {
         }
     }
 
-    public List<GetPaymentMethodDTO> getPaymentMethodsByUser(UserEntity user) {
-        return PaymentMethodEntity.<PaymentMethodEntity>list("user = ?1 and deleted = false", user)
+    public List<GetPaymentMethodDTO> getPaymentMethodsByUser(UUID userId) {
+        return PaymentMethodEntity.<PaymentMethodEntity>list("userId = ?1 and deleted = false", userId)
                 .stream()
                 .map(paymentMethod -> {
                     if (paymentMethod.getType() == PaymentMethodType.CREDIT_CARD) {
                         var creditCard = CreditCardEntity.<CreditCardEntity>find("paymentMethod = ?1 and deleted = false", paymentMethod)
                                 .firstResult();
                         if (creditCard != null) {
-                            var firstUnpaidInvoice = creditCardInvoiceService.getFirstUnpaidInvoice(creditCard.getId(), user);
+                            var firstUnpaidInvoice = creditCardInvoiceService.getFirstUnpaidInvoice(creditCard.getId(), userId);
                             return new GetPaymentMethodDTO(paymentMethod, firstUnpaidInvoice.orElse(null));
                         }
                     } else if (paymentMethod.getType() == PaymentMethodType.ACCOUNT) {
@@ -59,13 +59,13 @@ public class PaymentMethodService {
                 .toList();
     }
 
-    public Optional<PaymentMethodEntity> getPaymentMethodById(Long id, UserEntity user) {
-        return PaymentMethodEntity.find("id = ?1 and user = ?2", id, user).firstResultOptional();
+    public Optional<PaymentMethodEntity> getPaymentMethodById(Long id, UUID userId) {
+        return PaymentMethodEntity.find("id = ?1 and userId = ?2", id, userId).firstResultOptional();
     }
 
     @Transactional
-    public boolean deletePaymentMethod(Long id, UserEntity user) {
-        Optional<PaymentMethodEntity> optionalPaymentMethod = getPaymentMethodById(id, user);
+    public boolean deletePaymentMethod(Long id, UUID userId) {
+        Optional<PaymentMethodEntity> optionalPaymentMethod = getPaymentMethodById(id, userId);
         if (optionalPaymentMethod.isPresent()) {
             var paymentMethod = optionalPaymentMethod.get();
             paymentMethod.delete();
@@ -87,5 +87,9 @@ public class PaymentMethodService {
             return true;
         }
         return false;
+    }
+
+    public List<PaymentMethodEntity> getPaymentMethodsByType(UUID userId, PaymentMethodType type) {
+        return PaymentMethodEntity.<PaymentMethodEntity>find("userId = ?1 and type = ?2", userId, type).list();
     }
 }

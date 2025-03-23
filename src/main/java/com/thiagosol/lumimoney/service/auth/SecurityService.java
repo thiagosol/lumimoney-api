@@ -1,18 +1,27 @@
 package com.thiagosol.lumimoney.service.auth;
 
-import com.thiagosol.lumimoney.entity.UserEntity;
-import io.quarkus.security.identity.SecurityIdentity;
+import java.util.UUID;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.ForbiddenException;
 
 @ApplicationScoped
 public class SecurityService {
 
     @Inject
-    SecurityIdentity securityIdentity;
+    KeycloakAuthService keycloakAuthService;
 
-    public UserEntity getAuthenticatedUser() {
-        String email = securityIdentity.getPrincipal().getName();
-        return UserEntity.<UserEntity>find("email", email).firstResult();
+    public static final String ROLE_USER = "lumimoney-user";
+    public static final String ROLE_ADMIN = "lumimoney-admin";
+
+    public UUID getAuthenticatedUser() {
+        return keycloakAuthService.getAuthenticatedUser();
+    }
+
+    public void validateUserAccess() {
+        if (!keycloakAuthService.hasRole(ROLE_USER)) {
+            throw new ForbiddenException("Usuário não tem permissão para acessar este recurso");
+        }
     }
 }
