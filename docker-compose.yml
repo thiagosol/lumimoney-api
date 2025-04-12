@@ -9,7 +9,7 @@ services:
     environment:
       ADMIN_EMAIL: ${LUMIMONEY_ADMIN_EMAIL}
       ADMIN_PASSWORD: ${LUMIMONEY_ADMIN_PASS}
-      DATABASE_HOST: thiagosol.com
+      DATABASE_HOST: ${SERVER_IP}
       DATABASE_USER: ${DB_POSTGRES_USER}
       DATABASE_PASSWORD: ${DB_POSTGRES_PASS}
       PUBLIC_KEY_LOCATION: file:///app/keys/public.pem
@@ -20,9 +20,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.lumimoney-api.entrypoints=http"
-      - "traefik.http.routers.lumimoney-api.rule=Host(`api.lumimoney.thiagosol.com`)"
+      - "traefik.http.routers.lumimoney-api.rule=Host(`api-lumimoney.thiagosol.com`)"
       - "traefik.http.routers.lumimoney-api-secure.entrypoints=https"
-      - "traefik.http.routers.lumimoney-api-secure.rule=Host(`api.lumimoney.thiagosol.com`)"
+      - "traefik.http.routers.lumimoney-api-secure.rule=Host(`api-lumimoney.thiagosol.com`)"
       - "traefik.http.routers.lumimoney-api-secure.tls=true"
       - "traefik.http.routers.lumimoney-api-secure.service=lumimoney-api-secure"
       - "traefik.http.services.lumimoney-api-secure.loadbalancer.server.port=8080"
