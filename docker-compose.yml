@@ -19,14 +19,11 @@ services:
       - /opt/auto-deploy/certs/keys:/app/keys
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.lumimoney-api.entrypoints=http"
       - "traefik.http.routers.lumimoney-api.rule=Host(`api-lumimoney.thiagosol.com`)"
-      - "traefik.http.routers.lumimoney-api-secure.entrypoints=https"
-      - "traefik.http.routers.lumimoney-api-secure.rule=Host(`api-lumimoney.thiagosol.com`)"
-      - "traefik.http.routers.lumimoney-api-secure.tls=true"
-      - "traefik.http.routers.lumimoney-api-secure.service=lumimoney-api-secure"
-      - "traefik.http.services.lumimoney-api-secure.loadbalancer.server.port=8080"
-      - "traefik.docker.network=external-sol-apis"
+      - "traefik.http.routers.lumimoney-api.entrypoints=https"
+      - "traefik.http.routers.lumimoney-api.tls=true"
+      - "traefik.http.services.lumimoney-api.loadbalancer.server.port=8080"
+      - "traefik.docker.network=proxy"
     networks:
       - external-sol-apis
       - logging-network
